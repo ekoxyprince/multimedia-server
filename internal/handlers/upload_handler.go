@@ -18,6 +18,9 @@ func NewUploadHandler(upload_service *services.UploadService)*UploadHandler{
 }
 
 func (handler *UploadHandler) UploadSingleImage(c *gin.Context){
+ width := (c.PostForm("width"))
+ height := c.PostForm("height")
+ mode := c.PostForm("mode")
  fileHeader,err := c.FormFile("image")
  if err != nil{
   log.Print(err)
@@ -39,7 +42,7 @@ func (handler *UploadHandler) UploadSingleImage(c *gin.Context){
   c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":"An error occured while decoding file"})
   return 
  }
- err = handler.uploadService.UploadSingleImage(srcImage)
+ err = handler.uploadService.UploadSingleImage(srcImage,width,height,mode,fileHeader.Filename)
  if err != nil{
   log.Print(err)
   c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":"An error occured while uploading file"})
