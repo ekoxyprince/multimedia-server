@@ -68,31 +68,17 @@ func (handler *UploadHandler) UploadMultipleImage(c *gin.Context){
   return 
  }
   form,err := c.MultipartForm()
-    if err != nil{
+  if err != nil{
   log.Print(err)
   c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
   return 
  }
  fileHeaders := form.File["image"]
- for _,fileHeader := range fileHeaders{
-  file,err :=fileHeader.Open()
-  if err != nil{
-	  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
-  return 
-  }
-  defer file.Close()
-   srcImage,_,err := image.Decode(file)
+ err = handler.uploadService.UploadMultipleImage(fileHeaders,formItem.Width,formItem.Height,formItem.Mode)
     if err != nil{
   log.Print(err)
   c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
   return 
- }
-  err = handler.uploadService.UploadSingleImage(srcImage,formItem.Width,formItem.Height,formItem.Mode,fileHeader.Filename)
-    if err != nil{
-  log.Print(err)
-  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
-  return 
- }
  }
  c.JSON(http.StatusCreated,gin.H{"success":true,"message":"Images uploaded"})
 }

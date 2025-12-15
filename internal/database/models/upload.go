@@ -13,6 +13,7 @@ type Upload struct{
 
 type UploadRepository interface{
 	CreateUpload(upload *Upload)error
+	CreateMultipleUploads(uploads *[]Upload)error
 	GetUploads()(*[]Upload,error)
 	GetUploadById(id int64)(*Upload,error)
 }
