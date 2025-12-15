@@ -12,15 +12,24 @@ import (
 type UploadHandler struct{
 	uploadService *services.UploadService
 }
+type ImageForm struct{
+ Width string `form:"width" binding:"required"`
+ Height string `form:"height" binding:"required"`
+ Mode string `form:"mode" binding:"required"`
+}
 
 func NewUploadHandler(upload_service *services.UploadService)*UploadHandler{
 	return &UploadHandler{uploadService: upload_service}
 }
 
 func (handler *UploadHandler) UploadSingleImage(c *gin.Context){
- width := (c.PostForm("width"))
- height := c.PostForm("height")
- mode := c.PostForm("mode")
+ var form ImageForm;	
+ err := c.ShouldBind(&form)
+  if err != nil{
+  log.Print(err)
+  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":"An error occured while parsing form names"})
+  return 
+ }
  fileHeader,err := c.FormFile("image")
  if err != nil{
   log.Print(err)
@@ -39,10 +48,10 @@ func (handler *UploadHandler) UploadSingleImage(c *gin.Context){
   log.Print(format)
   if err != nil{
   log.Print(err)
-  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":"An error occured while decoding file"})
+  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":"Only images are accepted."})
   return 
  }
- err = handler.uploadService.UploadSingleImage(srcImage,width,height,mode,fileHeader.Filename)
+ err = handler.uploadService.UploadSingleImage(srcImage,form.Width,form.Height,form.Mode,fileHeader.Filename)
  if err != nil{
   log.Print(err)
   c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":"An error occured while uploading file"})
