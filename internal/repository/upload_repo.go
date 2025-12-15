@@ -21,6 +21,14 @@ func (u *UploadRepository) CreateUpload(data *models.Upload)error{
 	}
 	return nil
 }
+func (u *UploadRepository) CreateMultipleUploads(data *[]models.Upload) error{
+	ctx := context.Background()
+	err := gorm.G[[]models.Upload](u.db).Create(ctx,data)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func (u *UploadRepository) GetUploads()(*[]models.Upload,error){
 	ctx := context.Background()
 	uploads,err := gorm.G[models.Upload](u.db).Find(ctx)

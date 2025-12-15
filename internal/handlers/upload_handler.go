@@ -27,20 +27,20 @@ func (handler *UploadHandler) UploadSingleImage(c *gin.Context){
  err := c.ShouldBind(&form)
   if err != nil{
   log.Print(err)
-  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":"An error occured while parsing form names"})
+  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
   return 
  }
  fileHeader,err := c.FormFile("image")
  if err != nil{
   log.Print(err)
-  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":"An error occured while parsing form"})
+  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
   return 
  }
 
  file, err := fileHeader.Open()
   if err != nil{
   log.Print(err)
-  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":"An error occured while opening file header"})
+  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
   return 
  }
  defer file.Close()
@@ -48,7 +48,7 @@ func (handler *UploadHandler) UploadSingleImage(c *gin.Context){
   log.Print(format)
   if err != nil{
   log.Print(err)
-  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":"Only images are accepted."})
+  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
   return 
  }
  err = handler.uploadService.UploadSingleImage(srcImage,form.Width,form.Height,form.Mode,fileHeader.Filename)
@@ -58,4 +58,41 @@ func (handler *UploadHandler) UploadSingleImage(c *gin.Context){
   return 
  }
  c.JSON(http.StatusOK,gin.H{"success":true,"message":"file uploaded"})
+}
+func (handler *UploadHandler) UploadMultipleImage(c *gin.Context){
+  var formItem ImageForm
+  err := c.ShouldBind(&formItem)
+  if err != nil{
+  log.Print(err)
+  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
+  return 
+ }
+  form,err := c.MultipartForm()
+    if err != nil{
+  log.Print(err)
+  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
+  return 
+ }
+ fileHeaders := form.File["image"]
+ for _,fileHeader := range fileHeaders{
+  file,err :=fileHeader.Open()
+  if err != nil{
+	  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
+  return 
+  }
+  defer file.Close()
+   srcImage,_,err := image.Decode(file)
+    if err != nil{
+  log.Print(err)
+  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
+  return 
+ }
+  err = handler.uploadService.UploadSingleImage(srcImage,formItem.Width,formItem.Height,formItem.Mode,fileHeader.Filename)
+    if err != nil{
+  log.Print(err)
+  c.JSON(http.StatusBadRequest,gin.H{"success":false,"message":err.Error()})
+  return 
+ }
+ }
+ c.JSON(http.StatusCreated,gin.H{"success":true,"message":"Images uploaded"})
 }
